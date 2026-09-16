@@ -1,0 +1,5 @@
+pydantic-ai-slim[openai,openrouter]==1.107.5
+langfuse==4.15.3
+streamlit==1.64.0
+python-dotenv==1.2.3
+openai==3.14.0
