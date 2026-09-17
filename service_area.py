@@ -8,6 +8,10 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class MapsError(Exception):
     pass

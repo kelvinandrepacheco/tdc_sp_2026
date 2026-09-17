@@ -184,26 +184,23 @@ def locals_args(start_time, end_time):
 
 
 def prompt_for(label, lf):
-    fallback = (BASE / 'prompts' / 'improved.txt').read_text()
     if lf:
-        prompt = lf.get_prompt('climacasa-agent', label=label, fallback=fallback, cache_ttl_seconds=0)
+        prompt = lf.get_prompt('climacasa-agent', label=label, cache_ttl_seconds=0)
         prompt_id = getattr(prompt, 'id', None) or getattr(prompt, 'prompt_id', None)
         return prompt.compile(), {
             'name': prompt.name,
             'version': prompt.version,
             'label': label,
             'id': str(prompt_id) if prompt_id else None,
-            'fallback': prompt.is_fallback,
-            'prompt_obj': prompt if not prompt.is_fallback else None,
+            'prompt_obj': prompt,
         }
     # Explicit local variants are useful when no Langfuse credentials are configured.
-    variant = 'baseline' if label == 'baseline' else 'improved'
-    return (BASE / 'prompts' / f'{variant}.txt').read_text(), {
+    variant = label if (BASE / 'prompts' / f'{label}.txt').exists() else ('baseline' if label == 'baseline' else 'improved')
+    return (BASE / 'prompts' / f'{variant}.txt').read_text(encoding='utf-8'), {
         'name': 'climacasa-agent',
         'version': 'local-' + variant,
         'label': label,
         'id': f'local-{variant}',
-        'fallback': True,
         'prompt_obj': None,
     }
 
@@ -212,18 +209,18 @@ def run_turn(question, deps, messages=None, label='production', conversation=Non
     lf = telemetry()
     prompt, provenance = prompt_for(label, lf)
     current = datetime.now(TZ).isoformat()
-    instructions = prompt + '\nPara cobertura use check_service_area; nunca invente duração/distância. Até 3600 segundos atende; acima não. Unknown exige esclarecer ou tentar depois. Cidade dá estimativa, endereço exato é necessário para agendar. Use localização do pedido atual e explicite a UF resolvida. book_visit recebe destination e state do endereço escolhido.\n' + f'\nAgora: {current}. Fuso: {TZ}. Modo da agenda: {deps.calendar.mode}.'
+    instructions = prompt + f'\n\nAgora: {current}. Fuso: {TZ}. Modo da agenda: {deps.calendar.mode}.'
     deps.evidence = []
     turn_id = uuid.uuid4().hex
 
     # Determine prompt linking for Langfuse
     prompt_to_link = provenance.get('prompt_obj')
-    if prompt_to_link is None and not provenance.get('fallback') and isinstance(provenance.get('version'), int):
+    if prompt_to_link is None and isinstance(provenance.get('version'), int):
         prompt_to_link = {'name': provenance['name'], 'version': provenance['version']}
 
-    trace_version = str(provenance['version']) if not provenance.get('fallback') else None
+    trace_version = str(provenance['version'])
     trace_tags = ['tdc-2026', deps.calendar.mode]
-    if not provenance.get('fallback') and provenance.get('version') is not None:
+    if provenance.get('version') is not None:
         trace_tags.append(f"prompt:v{provenance['version']}")
         trace_tags.append(f"prompt-label:{label}")
         if provenance.get('id'):
@@ -233,7 +230,6 @@ def run_turn(question, deps, messages=None, label='production', conversation=Non
         'prompt_label': label,
         'prompt_version': str(provenance['version']),
         'prompt_name': provenance['name'],
-        'prompt_fallback': str(provenance.get('fallback', False)),
         'session_id': deps.session,
     }
     if provenance.get('id'):

@@ -34,7 +34,7 @@ class TracingTests(unittest.TestCase):
         try:
             with tempfile.TemporaryDirectory() as folder:
                 with patch('agent_app.telemetry', return_value=client), patch('agent_app.trace_provider', return_value=provider), patch('agent_app.prompt_for', return_value=(
-                    'Teste', {'name': 'climacasa-agent', 'version': 2, 'label': 'candidate', 'fallback': False})), patch('agent_app.DATA', Path(folder)):
+                    'Teste', {'name': 'climacasa-agent', 'version': 2, 'label': 'candidate'})), patch('agent_app.DATA', Path(folder)):
                     result, _ = run_turn('Preço?', Deps(LocalCalendar(str(Path(folder) / 'db')), 'test'), model=FunctionModel(model))
                 client.flush()
                 spans = exporter.get_finished_spans()

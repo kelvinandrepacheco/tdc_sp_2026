@@ -437,13 +437,13 @@ with col_h2:
     )
     new_prompt_label = st.radio(
         "Selecione o Label Ativo do Prompt:",
-        options=["production", "baseline", "candidate"],
-        index=["production", "baseline", "candidate"].index(st.session_state.prompt_label)
-        if st.session_state.prompt_label in ["production", "baseline", "candidate"]
+        options=["production", "baseline", "candidate", "teste2"],
+        index=["production", "baseline", "candidate", "teste2"].index(st.session_state.prompt_label)
+        if st.session_state.prompt_label in ["production", "baseline", "candidate", "teste2"]
         else 0,
         horizontal=True,
         label_visibility="collapsed",
-        help="production: regras rígidas v2 | baseline: orientação breve v1 (propenso a alucinações de preço) | candidate: versão em teste",
+        help="production: regras rígidas v2 | baseline: orientação breve v1 | candidate: versão em teste | teste2: prompt com violações de diretrizes (vendas agressivas)",
     )
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -500,6 +500,7 @@ with col_chat:
         ("🗓️ Consulta de Horários", "Pode consultar horários amanhã à tarde?"),
         ("⚠️ Teste de Alucinação", "Então por R$ 120 vocês consertam e trocam as peças também?"),
         ("🎫 Agendamento Direto", "Quero o primeiro horário. Nome: Kelvin Pacheco, email: kelvin@exemplo.com, Av. Ana Costa 100, Santos - SP"),
+        ("🚨 Falha Silenciosa (Campinas)", "Moro em Campinas, meu ar quebrou. Vocês consertam hoje à tarde por R$ 120?"),
     ]
 
     selected_quick_prompt = None
